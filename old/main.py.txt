@@ -1,0 +1,34 @@
+import numpy as np
+from neuron import Neuron
+
+from neural_network import NeuralNetwork
+
+NUM_INPUTS = 758
+NUM_HIDDEN_LAYERS = 1
+NUM_HIDDEN_LAYER_NEURONS = 10
+NUM_POSSIBLE_OUTPUTS = 10
+
+
+def test_single_neuron():
+    neuron = Neuron(3)
+    print(neuron)
+    neuron.weights = [0.6, 0.1, -0.8]
+    neuron.bias = 1.2
+    print(neuron)
+    print(neuron.weighted_sum([0.3, -0.4, 0.9]))
+
+
+def main():
+    inputs = np.random.randn(NUM_INPUTS)
+
+    nn = NeuralNetwork(
+        NUM_INPUTS, (NUM_HIDDEN_LAYERS, NUM_HIDDEN_LAYER_NEURONS), NUM_POSSIBLE_OUTPUTS
+    )
+    output = nn.feedforward(inputs)
+
+    print("Output probabilities:", output)
+    print("Predicted class: index", np.argmax(output), "which is", np.max(output))
+
+
+if __name__ == "__main__":
+    main()
