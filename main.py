@@ -4,7 +4,7 @@ from os.path import join
 import matplotlib.pyplot as plt
 import numpy as np
 
-from mnist_loader import LabeledImage, MnistDataloader
+from mnist_loader import MnistDataloader
 from neural_network import NeuralNetwork
 
 input_dir_path = "./input"
@@ -21,37 +21,40 @@ mnist_dataloader = MnistDataloader(
     test_images_filepath,
     test_labels_filepath,
 )
-labeled_training_images, labeled_test_images = mnist_dataloader.load_data()
 
 
-def test():
-    nn = NeuralNetwork([784, 16, 10])
-    for image, label in labeled_training_images[:10]:
-        pass
-        # p = nn.feedforward(image)
+def main():
+    training_data, test_data = mnist_dataloader.load_data(shape="flat")
 
-    correct = 0
-    for image, label in labeled_test_images[:100]:
-        p = nn.feedforward(image)
-        guess = np.argmax(p) + 1
-        if guess == label:
-            correct += 1
+    def one_hot_encode(label, num_classes=10):
+        vec = np.zeros((num_classes, 1))
+        vec[label] = 1.0
+        return vec
 
-    print("accuracy:", correct, "%")
+    training_data = [(img, one_hot_encode(lbl)) for img, lbl in training_data]
+    test_data = [(img, one_hot_encode(lbl)) for img, lbl in test_data]
+
+    validation_data = training_data[50000:]
+    training_data = training_data[:50000]
+    nn = NeuralNetwork([784, 30, 10])
+    print("Stochastic gradient descent...")
+    nn.SGD(training_data, 30, 10, 3.0, test_data=validation_data)
+    print("Evaluating model accuracy...")
+    print(f"Model has {nn.evaluate(test_data)}% accuracy")
 
 
-test()
+main()
 
 
-def show_images(labeled_images, cols, output_path="output.png"):
-    rows = math.ceil(len(labeled_images) / cols)
+def show_images(data, cols, output_path="output.png"):
+    rows = math.ceil(len(data) / cols)
     plt.figure(figsize=(5 * cols, 4 * rows))
 
-    for index, labeled_image in enumerate(labeled_images, 1):
+    for index, (image, label) in enumerate(data, 1):
         plt.subplot(rows, cols, index)
-        plt.imshow(labeled_image.image, cmap="Greys")
-        if labeled_image.label:
-            plt.title(labeled_image.label, fontsize=12)
+        plt.imshow(image, cmap="Greys")
+        if label:
+            plt.title(label, fontsize=12)
         plt.axis("off")
 
     plt.tight_layout()
@@ -60,27 +63,14 @@ def show_images(labeled_images, cols, output_path="output.png"):
     plt.close()
 
 
-def show_random_training_and_test_images():
-    labeled_images_2_show = []
+def show_random_training_and_test_images(training_data, test_data):
+    data_to_show = []
     for r in np.random.randint(1, 10000, 10):
-        train_image, train_label = labeled_training_images[r]
-        labeled_images_2_show.append(
-            LabeledImage(
-                train_image,
-                f"training image [{r}] = {train_label}",
-            )
-        )
+        train_image, train_label = training_data[r]
+        data_to_show.append((train_image, f"training image [{r}] = {train_label}"))
 
     for r in np.random.randint(1, 10000, 5):
-        test_image, test_label = labeled_test_images[r]
-        labeled_images_2_show.append(
-            LabeledImage(
-                test_image,
-                f"test image [{r}] = {test_label}",
-            )
-        )
+        test_image, test_label = test_data[r]
+        data_to_show.append((test_image, f"test image [{r}] = {test_label}"))
 
-    show_images(labeled_images_2_show, 5)
-
-
-# show_random_training_and_test_images()
+    show_images(data_to_show, 5)

@@ -1,83 +1,99 @@
+from typing import List, Tuple
+
 import numpy as np
 
 
-def relu(z):
-    return np.maximum(0, z)
-
-
-def softmax(z):
-    """
-    we don't actually have to use softmax to see what digit did the neural network guess
-    to do that, we can just grab the highest number out of all the output nodes
-    softmax is simply math to convert an array of negative and positive values to each item being 0 to 1
-    with highest value being closer to 1, and lowest value being closer to 0
-    also, the sum of the new array would always be 1
-    so we can interpret the result of softmax as probabilities where 0 is 0% and 1 is 100%
-    """
-    # stabilizing to prevent integer overflow since the exponent of e could be so big?
-    exp_z = np.exp(z - np.max(z))
-    return exp_z / np.sum(exp_z)
-
-
 class NeuralNetwork:
-    def __init__(self, sizes):
+    def __init__(self, sizes: List[int]):
         self.sizes = sizes
         self.num_layers = len(sizes)
-        # simple biases and weights random initialization
-        # sizes[1:] cuz excluding size for input layer
         self.biases = [np.random.randn(y, 1) for y in sizes[1:]]
-        # sizes[:-1] for x cuz we don't need to know the number of output nodes for weights
-        # sizes[1:] for y cuz excluding size for input layer
         self.weights = [np.random.randn(y, x) for x, y in zip(sizes[:-1], sizes[1:])]
 
     def feedforward(self, a):
-        """
-        a (activation, how activated it is) is array of inputs (for the layer)
-        z is array of weighted sums (per layer)
-        w is array of weights (per layer)
-        b is array of biases (per layer)
-        """
-        a = np.array(a).reshape(-1, 1)
-        self.prevz = []
+        for w, b in zip(self.weights, self.biases):
+            a = sigmoid(np.dot(w, a) + b)
+        return a
 
-        # for hidden layers
-        for w, b in zip(self.weights[:-1], self.biases[:-1]):
+    def SGD(
+        self,
+        training_data,
+        epochs: int,
+        mini_batch_size: int,
+        eta: float,
+        test_data=None,
+    ):
+        for epoch in range(epochs):
+            np.random.shuffle(training_data)
+            mini_batches = [
+                training_data[i : i + mini_batch_size]
+                for i in range(0, len(training_data), mini_batch_size)
+            ]
+            for mini_batch in mini_batches:
+                self.update_mini_batch(mini_batch, eta)
+            if test_data:
+                accuracy = self.evaluate(test_data)
+                print(f"Epoch {epoch + 1}: {accuracy}% accuracy")
+            else:
+                print(f"Epoch {epoch} complete")
+
+    def update_mini_batch(self, mini_batch, eta):
+        nabla_b = [np.zeros(b.shape) for b in self.biases]
+        nabla_w = [np.zeros(w.shape) for w in self.weights]
+        for image, label in mini_batch:
+            delta_nabla_b, delta_nabla_w = self.backpropagation(image, label)
+            nabla_b = [nb + dnb for nb, dnb in zip(nabla_b, delta_nabla_b)]
+            nabla_w = [nw + dnw for nw, dnw in zip(nabla_w, delta_nabla_w)]
+        scaled_eta = eta / len(mini_batch)
+        self.biases = [b - scaled_eta * nb for b, nb in zip(self.biases, nabla_b)]
+        self.weights = [w - scaled_eta * nw for w, nw in zip(self.weights, nabla_w)]
+
+    def backpropagation(self, image, label):
+        nabla_b = [np.zeros(b.shape) for b in self.biases]
+        nabla_w = [np.zeros(w.shape) for w in self.weights]
+
+        # forward pass
+        a = image
+        activations = [a]
+        weighted_sums = []
+        for w, b in zip(self.weights, self.biases):
             z = np.dot(w, a) + b
-            a = relu(z)
-            self.prevz.append(z)
+            weighted_sums.append(z)
+            a = sigmoid(z)
+            activations.append(a)
 
-        """
-        for output layer, don't use relu or other activation functions
-        since e.g. relu will force negative numbers to 0
-        which means that when we softmax the result of that relu, -5 will have the same probability value as -2
-        but -5 should instead have a lower probability value than -2
-        """
-        w, b = self.weights[-1], self.biases[-1]
-        z = np.dot(w, a) + b
-        self.prevz.append(z)
-        return softmax(z)
+        # backward pass
+        delta = cost_derivative(activations[-1], label) * sigmoid_prime(
+            weighted_sums[-1]
+        )
+        nabla_b[-1] = delta
+        nabla_w[-1] = np.dot(delta, activations[-2].T)
 
-    def __str__(self):
-        return f"""biases:
-    {self.biases}
-weights:
-    {self.weights}
-"""
+        for l in range(2, self.num_layers):
+            z = weighted_sums[-l]
+            sp = sigmoid_prime(z)
+            delta = np.dot(self.weights[-l + 1].T, delta) * sp
+            nabla_b[-l] = delta
+            nabla_w[-l] = np.dot(delta, activations[-l - 1].T)
 
+        return (nabla_b, nabla_w)
 
-def assert_nn():
-    nn = NeuralNetwork([4, 3, 3, 2])
-    print(nn)
-    probabilities = nn.feedforward([1, 2, 3, 4])
-    print(probabilities)
-    print("highest:", np.max(probabilities), "which is index", np.argmax(probabilities))
-    assert np.isclose(
-        np.sum(probabilities), 1, rtol=1e-9, atol=1e-12
-    )  # sum of probabilities must basically be 1 (100%)
-    print()
-    print()
-    print("all asserts passed.")
+    def evaluate(self, test_data):
+        correct = 0
+        for image, label in test_data:
+            prediction = np.argmax(self.feedforward(image))
+            if prediction == np.argmax(label):
+                correct += 1
+        return round(correct / len(test_data) * 100, 2)
 
 
-if __name__ == "__main__":
-    assert_nn()
+def sigmoid(z):
+    return 1 / (1 + np.exp(-z))
+
+
+def sigmoid_prime(z):
+    return sigmoid(z) * (1 - sigmoid(z))
+
+
+def cost_derivative(output_activations, y):
+    return output_activations - y
