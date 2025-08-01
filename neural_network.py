@@ -73,15 +73,17 @@ class NeuralNetwork:
         nabla_b[-1] = delta
         nabla_w[-1] = np.dot(delta, activations[-2].T)
 
-        for l in range(self.num_layers - 1, 1, -1):
-            z = weighted_sums[l]
+        for l in range(2, self.num_layers):
+            z = weighted_sums[-l]
+            sp = sigmoid_prime(z)
             # formula for finding error for layers before the last layer (all hidden layers)
             # δ^l= ( (wl+1)^T . δ^(l+1) ) ⊙ σ'(z^l)
-            delta = np.dot(self.weights[l + 1].T, delta) * sigmoid_prime(z)
+            delta = np.dot(self.weights[-l + 1].T, delta) * sp
             # the error is exactly the same as the rate of change of the cost with respect to any bias in the NN
             # formula: ∂C/∂b_lj = δlj
-            nabla_b[l] = delta
-            nabla_w[l] = np.dot(delta, activations[l - 1].T)
+            nabla_b[-l] = delta
+            # formula: ∂C/∂w_ljk = a_l-1k . δ_lj
+            nabla_w[-l] = np.dot(delta, activations[-l - 1].T)
 
         return nabla_b, nabla_w
 
