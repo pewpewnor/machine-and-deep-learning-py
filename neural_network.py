@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import List
 
 import numpy as np
 
@@ -52,7 +52,8 @@ class NeuralNetwork:
         nabla_b = [np.zeros(b.shape) for b in self.biases]
         nabla_w = [np.zeros(w.shape) for w in self.weights]
 
-        # forward pass
+        # forward pass below
+
         a = image
         activations = [a]
         weighted_sums = []
@@ -62,21 +63,27 @@ class NeuralNetwork:
             a = sigmoid(z)
             activations.append(a)
 
-        # backward pass
+        # backward pass below
+
+        # formula for finding error for last layer (L) which is output layer:
+        # δ^L = ∇aC ⊙ σ'(z^L)
         delta = cost_derivative(activations[-1], label) * sigmoid_prime(
             weighted_sums[-1]
         )
         nabla_b[-1] = delta
         nabla_w[-1] = np.dot(delta, activations[-2].T)
 
-        for l in range(2, self.num_layers):
-            z = weighted_sums[-l]
-            sp = sigmoid_prime(z)
-            delta = np.dot(self.weights[-l + 1].T, delta) * sp
-            nabla_b[-l] = delta
-            nabla_w[-l] = np.dot(delta, activations[-l - 1].T)
+        for l in range(self.num_layers - 1, 1, -1):
+            z = weighted_sums[l]
+            # formula for finding error for layers before the last layer (all hidden layers)
+            # δ^l= ( (wl+1)^T . δ^(l+1) ) ⊙ σ'(z^l)
+            delta = np.dot(self.weights[l + 1].T, delta) * sigmoid_prime(z)
+            # the error is exactly the same as the rate of change of the cost with respect to any bias in the NN
+            # formula: ∂C/∂b_lj = δlj
+            nabla_b[l] = delta
+            nabla_w[l] = np.dot(delta, activations[l - 1].T)
 
-        return (nabla_b, nabla_w)
+        return nabla_b, nabla_w
 
     def evaluate(self, test_data):
         correct = 0

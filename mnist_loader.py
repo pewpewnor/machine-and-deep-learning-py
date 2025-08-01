@@ -1,6 +1,6 @@
 import struct
 from array import array
-from typing import List, Tuple, Union
+from typing import List, Tuple
 
 import numpy as np
 
@@ -18,9 +18,10 @@ class MnistDataloader:
         self.test_images_filepath = test_images_filepath
         self.test_labels_filepath = test_labels_filepath
 
-    def load_data(
-        self, shape: str = "flat"
-    ) -> Tuple[List[Tuple[np.ndarray, int]], List[Tuple[np.ndarray, int]]]:
+    def load_data(self, shape: str = "flat", one_hot_encode: bool = False) -> Tuple[
+        List[Tuple[np.ndarray, np.ndarray | int]],
+        List[Tuple[np.ndarray, np.ndarray | int]],
+    ]:
         """
         Load and return training and test data.
 
@@ -32,16 +33,23 @@ class MnistDataloader:
             Tuple of (training_data, test_data), each a list of (image, label) pairs.
         """
         training_data = self.read_images_labels(
-            self.training_images_filepath, self.training_labels_filepath, shape=shape
+            self.training_images_filepath,
+            self.training_labels_filepath,
+            shape,
+            one_hot_encode,
         )
         test_data = self.read_images_labels(
-            self.test_images_filepath, self.test_labels_filepath, shape=shape
+            self.test_images_filepath, self.test_labels_filepath, shape, one_hot_encode
         )
         return training_data, test_data
 
     def read_images_labels(
-        self, images_filepath: str, labels_filepath: str, shape: str = "flat"
-    ) -> List[Tuple[np.ndarray, int]]:
+        self,
+        images_filepath: str,
+        labels_filepath: str,
+        shape: str,
+        one_hot_encode: bool,
+    ) -> List[Tuple[np.ndarray, np.ndarray | int]]:
         with open(labels_filepath, "rb") as lbl_file:
             magic, size = struct.unpack(">II", lbl_file.read(8))
             if magic != 2049:
@@ -73,4 +81,12 @@ class MnistDataloader:
 
             images.append(img)
 
+        if one_hot_encode:
+            labels = [self.one_hot_encode(label) for label in labels]
+
         return list(zip(images, labels))
+
+    def one_hot_encode(self, label, num_classes=10):
+        vec = np.zeros((num_classes, 1))
+        vec[label] = 1.0
+        return vec

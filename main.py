@@ -14,29 +14,20 @@ test_images_filepath = join(input_dir_path, "t10k-images.idx3-ubyte")
 test_labels_filepath = join(input_dir_path, "t10k-labels.idx1-ubyte")
 
 
-# Load MINST dataset
-mnist_dataloader = MnistDataloader(
-    training_images_filepath,
-    training_labels_filepath,
-    test_images_filepath,
-    test_labels_filepath,
-)
-
-
 def main():
-    training_data, test_data = mnist_dataloader.load_data(shape="flat")
-
-    def one_hot_encode(label, num_classes=10):
-        vec = np.zeros((num_classes, 1))
-        vec[label] = 1.0
-        return vec
-
-    training_data = [(img, one_hot_encode(lbl)) for img, lbl in training_data]
-    test_data = [(img, one_hot_encode(lbl)) for img, lbl in test_data]
+    mnist_dataloader = MnistDataloader(
+        training_images_filepath,
+        training_labels_filepath,
+        test_images_filepath,
+        test_labels_filepath,
+    )
+    training_data, test_data = mnist_dataloader.load_data(
+        shape="flat", one_hot_encode=True
+    )
 
     validation_data = training_data[50000:]
     training_data = training_data[:50000]
-    nn = NeuralNetwork([784, 30, 10])
+    nn = NeuralNetwork([784, 100, 10])
     print("Stochastic gradient descent...")
     nn.SGD(training_data, 30, 10, 3.0, test_data=validation_data)
     print("Evaluating model accuracy...")
