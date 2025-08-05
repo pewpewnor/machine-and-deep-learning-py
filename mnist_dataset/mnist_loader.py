@@ -86,7 +86,7 @@ class MnistDataloader:
 
         return list(zip(images, labels))
 
-    def one_hot_encode(self, label, num_classes=10):
+    def one_hot_encode(self, label, num_classes=10) -> np.ndarray:
         vec = np.zeros((num_classes, 1))
         vec[label] = 1.0
         return vec
