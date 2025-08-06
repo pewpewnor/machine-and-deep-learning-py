@@ -37,7 +37,8 @@ def main():
     print(f"Model has {nn.evaluate(test_data)}% accuracy")
 
 
-main()
+if __name__ == "__main__":
+    main()
 
 
 def show_images(data, cols, output_path="output.png"):
