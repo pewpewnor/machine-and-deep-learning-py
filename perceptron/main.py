@@ -29,11 +29,13 @@ def main():
     # learning rate should be low (less than 1), so it can nudge little by little to the correct answer
     # the lower the learning rate, the more epochs are needed (more movement needed to make nudge it closer)
     # more epochs are needed for it to be properly fitted against training data
-    perceptrons.train(training_data, 10000, 0.1)
+    perceptrons.fit(training_data, 10000, 0.1)
+
+    print(perceptrons.predict(np.array([7, 1])) == 0)
 
     # print all predictions based on humidity when clouds are 50
     x = list(range(0, 100))
-    y = [perceptrons.forward(np.array([i, 50])) for i in x]
+    y = [perceptrons.predict(np.array([i, 50])) for i in x]
     plt.plot(x, y)
     plt.show()
 
