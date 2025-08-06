@@ -28,20 +28,25 @@ class Perceptrons:
             for inputs, label in training_data:
                 hidden_outputs, final_output = self.forward(inputs)
 
+                # this if check is technically not necessary since if error = 0, then delta is also 0
+                # but, this will reduce unnecessary training computational time
                 if final_output == label:
                     continue
 
                 # formula for delta_w is n * (y_expected - y_output) * x_input
                 # formula for delta_b is n * (y_expected - y_output)
 
-                delta_output_w = eta * (label - final_output) * hidden_outputs
-                delta_output_b = eta * (label - final_output)
+                output_error = label - final_output
+                delta_output_w = eta * output_error * hidden_outputs
+                delta_output_b = eta * output_error
                 self.output_weights += delta_output_w
                 self.output_bias += delta_output_b
 
                 for i in range(self.num_perceptrons):
+                    # this if check is not technically necessary for the same reason as before
                     if hidden_outputs[i] != label:
-                        delta_hidden_w = eta * (label - hidden_outputs[i]) * inputs
-                        delta_hidden_bias = eta * (label - hidden_outputs[i])
+                        hidden_error = label - hidden_outputs[i]
+                        delta_hidden_w = eta * hidden_error * inputs
+                        delta_hidden_bias = eta * hidden_error
                         self.weights[i] += delta_hidden_w
                         self.biases[i] += delta_hidden_bias
