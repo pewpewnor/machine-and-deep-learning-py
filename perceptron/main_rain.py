@@ -1,11 +1,7 @@
 import numpy as np
 from matplotlib import pyplot as plt
 
-from perceptron.perceptrons import Perceptrons
-
-
-def one_if_more_ones_than_zeros(outputs):
-    return np.sum(outputs) >= len(outputs) // 2
+from perceptron.my_perceptron import Perceptrons
 
 
 def main():

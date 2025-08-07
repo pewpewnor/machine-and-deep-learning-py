@@ -44,9 +44,11 @@ class Perceptrons:
 
                 for i in range(self.num_perceptrons):
                     # this if check is not technically necessary for the same reason as before
-                    if hidden_outputs[i] != label:
-                        hidden_error = label - hidden_outputs[i]
-                        delta_hidden_w = eta * hidden_error * inputs
-                        delta_hidden_bias = eta * hidden_error
-                        self.weights[i] += delta_hidden_w
-                        self.biases[i] += delta_hidden_bias
+                    if hidden_outputs[i] == label:
+                        continue
+
+                    hidden_error = label - hidden_outputs[i]
+                    delta_hidden_w = eta * hidden_error * inputs
+                    delta_hidden_bias = eta * hidden_error
+                    self.weights[i] += delta_hidden_w
+                    self.biases[i] += delta_hidden_bias
