@@ -2,18 +2,34 @@ import numpy as np
 
 
 class Perceptrons:
+    """
+    My perceptrons with a single hidden layer of multiple perceptrons which feed
+    into a single perceptron (that is the output peceptron).
+    Every single perceptron will have weights and a bias, the weighted sum will
+    be converted to either 1 or 0.
+
+    Inputs    Hidden Perceptrons  Output perceptron
+    -----------------------------------------------
+    O       -> O                ->
+    O       -> O                -> O
+    O       -> O                ->
+    -----------------------------------------------
+    """
+
     def __init__(self, num_features, num_perceptrons):
         self.num_features = num_features
         self.num_perceptrons = num_perceptrons
 
-        self.weights = np.random.randn(num_perceptrons, num_features)
-        self.biases = np.random.randn(num_perceptrons)
+        self.hidden_weights = np.random.randn(num_perceptrons, num_features)
+        self.hidden_biases = np.random.randn(num_perceptrons)
 
         self.output_weights = np.random.randn(num_perceptrons)
         self.output_bias = np.random.randn()
 
     def forward(self, inputs):
-        hidden_outputs = (np.dot(self.weights, inputs) + self.biases >= 0).astype(int)
+        hidden_outputs = (
+            np.dot(self.hidden_weights, inputs) + self.hidden_biases >= 0
+        ).astype(int)
         final_output = (
             np.dot(self.output_weights, hidden_outputs) + self.output_bias >= 0
         ).astype(int)
@@ -50,5 +66,5 @@ class Perceptrons:
                     hidden_error = label - hidden_outputs[i]
                     delta_hidden_w = eta * hidden_error * inputs
                     delta_hidden_bias = eta * hidden_error
-                    self.weights[i] += delta_hidden_w
-                    self.biases[i] += delta_hidden_bias
+                    self.hidden_weights[i] += delta_hidden_w
+                    self.hidden_biases[i] += delta_hidden_bias
