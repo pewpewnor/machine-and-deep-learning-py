@@ -49,22 +49,24 @@ class Perceptrons:
                 if final_output == label:
                     continue
 
-                # formula for delta_w is n * (y_expected - y_output) * x_input
-                # formula for delta_b is n * (y_expected - y_output)
-
-                output_error = label - final_output
-                delta_output_w = eta * output_error * hidden_outputs
-                delta_output_b = eta * output_error
-                self.output_weights += delta_output_w
-                self.output_bias += delta_output_b
-
+                # update all hidden perceptrons
                 for i in range(self.num_perceptrons):
                     # this if check is not technically necessary for the same reason as before
                     if hidden_outputs[i] == label:
                         continue
+
+                    # formula for delta_w is n * (y_expected - y_output) * x_input
+                    # formula for delta_b is n * (y_expected - y_output)
 
                     hidden_error = label - hidden_outputs[i]
                     delta_hidden_w = eta * hidden_error * inputs
                     delta_hidden_bias = eta * hidden_error
                     self.hidden_weights[i] += delta_hidden_w
                     self.hidden_biases[i] += delta_hidden_bias
+
+                # update the output perceptron
+                output_error = label - final_output
+                delta_output_w = eta * output_error * hidden_outputs
+                delta_output_b = eta * output_error
+                self.output_weights += delta_output_w
+                self.output_bias += delta_output_b
