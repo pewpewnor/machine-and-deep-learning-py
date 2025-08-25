@@ -1,7 +1,7 @@
 import numpy as np
 from matplotlib import pyplot as plt
 
-from perceptron.my_perceptrons import Perceptrons
+from deep_learning.perceptron.my_perceptrons import Perceptrons
 
 
 def main():

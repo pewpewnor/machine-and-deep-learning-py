@@ -3,7 +3,7 @@ import pandas as pd
 from matplotlib import pyplot as plt
 from matplotlib.colors import ListedColormap
 
-from perceptron.my_perceptrons import Perceptrons
+from deep_learning.perceptron.my_perceptrons import Perceptrons
 
 iris_dataset = "./data/iris_dataset/iris.data"
 
