@@ -17,17 +17,17 @@ class Perceptron:
         self.weights = np.zeros(num_features)
         self.bias = 0
 
-        self.incorrects = []
+        self.misclassifications = []
 
     def net_input(self, X):
         return np.dot(X, self.weights) + self.bias
 
     def predict(self, X):
-        return np.where(self.net_input(X) >= 0, 1, -1)
+        return np.where(self.net_input(X) >= 0, 1, 0)
 
     def fit(self, training_data, labels, eta, epochs):
         for _ in range(epochs):
-            num_incorrect_in_current_epoch = 0
+            misclassifications_in_current_epoch = 0
 
             for inputs, label in zip(training_data, labels):
                 delta = eta * (label - self.predict(inputs))
@@ -39,5 +39,5 @@ class Perceptron:
                 self.weights += delta_w
                 self.bias += delta_b
 
-                num_incorrect_in_current_epoch += int(delta != 0)
-            self.incorrects.append(num_incorrect_in_current_epoch)
+                misclassifications_in_current_epoch += int(delta != 0)
+            self.misclassifications.append(misclassifications_in_current_epoch)

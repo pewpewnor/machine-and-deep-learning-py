@@ -3,11 +3,11 @@ from os.path import join
 
 import matplotlib.pyplot as plt
 import numpy as np
-
 from mnist_dataset.mnist_loader import MnistDataloader
+
 from sigmoid.neural_network import NeuralNetwork
 
-input_dir_path = "./mnist_dataset"
+input_dir_path = "./data/mnist_dataset"
 training_images_filepath = join(input_dir_path, "train-images.idx3-ubyte")
 training_labels_filepath = join(input_dir_path, "train-labels.idx1-ubyte")
 test_images_filepath = join(input_dir_path, "t10k-images.idx3-ubyte")

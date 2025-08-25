@@ -27,17 +27,22 @@ class Perceptrons:
         self.output_bias = np.random.randn()
 
     def forward(self, inputs):
-        hidden_outputs = (
-            np.dot(self.hidden_weights, inputs) + self.hidden_biases >= 0
-        ).astype(int)
+        hidden_outputs = np.dot(self.hidden_weights, inputs) + self.hidden_biases >= 0
         final_output = (
             np.dot(self.output_weights, hidden_outputs) + self.output_bias >= 0
         ).astype(int)
         return hidden_outputs, final_output
 
     def predict(self, inputs):
-        _, final_output = self.forward(inputs)
-        return final_output
+        if inputs.ndim == 1:
+            _, final_output = self.forward(inputs)
+            return final_output
+
+        predictions = []
+        for features in inputs:
+            _, final_output = self.forward(features)
+            predictions.append(final_output)
+        return np.array(predictions)
 
     def fit(self, training_data, epochs, eta):
         for _ in range(epochs):
