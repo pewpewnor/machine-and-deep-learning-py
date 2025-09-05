@@ -27,7 +27,9 @@ class Perceptrons:
         self.output_bias = np.random.randn()
 
     def forward(self, inputs):
-        hidden_outputs = np.dot(self.hidden_weights, inputs) + self.hidden_biases >= 0
+        hidden_outputs = (
+            np.dot(self.hidden_weights, inputs) + self.hidden_biases >= 0
+        ).astype(int)
         final_output = (
             np.dot(self.output_weights, hidden_outputs) + self.output_bias >= 0
         ).astype(int)
