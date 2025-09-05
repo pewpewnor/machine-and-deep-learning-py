@@ -46,10 +46,8 @@ def main():
         plt.legend()
         plt.show()
 
-    training_data = [(f, label) for f, label in zip(features, labels)]
-
     ppn = Perceptrons(features.shape[1], 10)
-    ppn.fit(training_data, 100, 0.1)
+    ppn.fit(features, labels, 9, 0.1, validation_data=features, validation_label=labels)
 
     # def show_misclassifications_over_time():
     #     plt.plot(

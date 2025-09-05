@@ -20,7 +20,7 @@ class Perceptrons:
         self.num_features = num_features
         self.num_perceptrons = num_perceptrons
 
-        self.hidden_weights = np.random.randn(num_perceptrons, num_features)
+        self.hidden_weights = np.random.randn(num_features, num_perceptrons)
         self.hidden_biases = np.random.randn(num_perceptrons)
 
         self.output_weights = np.random.randn(num_perceptrons)
@@ -28,27 +28,28 @@ class Perceptrons:
 
     def forward(self, inputs):
         hidden_outputs = (
-            np.dot(self.hidden_weights, inputs) + self.hidden_biases >= 0
+            inputs @ self.hidden_weights + self.hidden_biases >= 0
         ).astype(int)
         final_output = (
-            np.dot(self.output_weights, hidden_outputs) + self.output_bias >= 0
+            hidden_outputs @ self.output_weights + self.output_bias >= 0
         ).astype(int)
         return hidden_outputs, final_output
 
     def predict(self, inputs):
-        if inputs.ndim == 1:
-            _, final_output = self.forward(inputs)
-            return final_output
+        _, final_output = self.forward(inputs)
+        return final_output
 
-        predictions = []
-        for features in inputs:
-            _, final_output = self.forward(features)
-            predictions.append(final_output)
-        return np.array(predictions)
-
-    def fit(self, training_data, epochs, eta):
-        for _ in range(epochs):
-            for inputs, label in training_data:
+    def fit(
+        self,
+        training_data,
+        training_label,
+        epochs,
+        eta,
+        validation_data=None,
+        validation_label=None,
+    ):
+        for epoch in range(1, epochs + 1):
+            for inputs, label in zip(training_data, training_label):
                 hidden_outputs, final_output = self.forward(inputs)
 
                 # this if check is technically not necessary since if error = 0, then delta is also 0
@@ -56,7 +57,7 @@ class Perceptrons:
                 if final_output == label:
                     continue
 
-                # update all hidden perceptrons
+                # updates for all hidden perceptrons
                 for i in range(self.num_perceptrons):
                     # this if check is not technically necessary for the same reason as before
                     if hidden_outputs[i] == label:
@@ -68,12 +69,21 @@ class Perceptrons:
                     hidden_error = label - hidden_outputs[i]
                     delta_hidden_w = eta * hidden_error * inputs
                     delta_hidden_bias = eta * hidden_error
-                    self.hidden_weights[i] += delta_hidden_w
+                    self.hidden_weights[:, i] += delta_hidden_w
                     self.hidden_biases[i] += delta_hidden_bias
 
-                # update the output perceptron
+                # update for the single output perceptron
                 output_error = label - final_output
                 delta_output_w = eta * output_error * hidden_outputs
                 delta_output_b = eta * output_error
                 self.output_weights += delta_output_w
                 self.output_bias += delta_output_b
+
+            # print validation accuracy after training on current epoch
+            if validation_data is not None and validation_label is not None:
+                epoch_accuracy = self.score(validation_data, validation_label)
+                print(f"Epoch {epoch} validation accuracy: {epoch_accuracy}%")
+
+    def score(self, test_data, test_label):
+        correct_predictions = sum((self.predict(test_data) == test_label).astype(int))
+        return round(correct_predictions / len(test_label) * 100, 2)
