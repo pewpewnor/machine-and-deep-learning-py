@@ -23,7 +23,7 @@ class Perceptron:
         return np.dot(X, self.weights) + self.bias
 
     def predict(self, X):
-        return np.where(self.net_input(X) >= 0, 1, 0)
+        return np.where(self.net_input(X) >= 0, 1, -1)
 
     def fit(self, training_data, labels, eta, epochs):
         for _ in range(epochs):

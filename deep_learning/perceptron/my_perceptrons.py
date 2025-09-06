@@ -27,29 +27,30 @@ class Perceptrons:
         self.output_bias = np.random.randn()
 
     def forward(self, inputs):
-        hidden_outputs = (
-            inputs @ self.hidden_weights + self.hidden_biases >= 0
-        ).astype(int)
-        final_output = (
-            hidden_outputs @ self.output_weights + self.output_bias >= 0
-        ).astype(int)
+        # perceptron formula:
+        # if a * w < threshold (which is a * w + b < 0), then output is -1, else output is 1
+        hidden_outputs = np.where(
+            inputs @ self.hidden_weights + self.hidden_biases < 0, -1, 1
+        )
+        final_output = np.where(
+            hidden_outputs @ self.output_weights + self.output_bias < 0, -1, 1
+        )
         return hidden_outputs, final_output
 
     def predict(self, inputs):
         _, final_output = self.forward(inputs)
         return final_output
 
-    def fit(
-        self,
-        training_data,
-        training_label,
-        epochs,
-        eta,
-        validation_data=None,
-        validation_label=None,
-    ):
+    def fit(self, train_x, train_y, epochs, eta, val_x=None, val_y=None, val_every=1):
+        val_countdown = 0
+
         for epoch in range(1, epochs + 1):
-            for inputs, label in zip(training_data, training_label):
+            # shuffle the training data in every epoch so that they learn outside of training data order
+            indices = np.random.permutation(len(train_y))
+            train_x[:] = train_x[indices]
+            train_y[:] = train_y[indices]
+
+            for inputs, label in zip(train_x, train_y):
                 hidden_outputs, final_output = self.forward(inputs)
 
                 # this if check is technically not necessary since if error = 0, then delta is also 0
@@ -80,10 +81,14 @@ class Perceptrons:
                 self.output_bias += delta_output_b
 
             # print validation accuracy after training on current epoch
-            if validation_data is not None and validation_label is not None:
-                epoch_accuracy = self.score(validation_data, validation_label)
-                print(f"Epoch {epoch} validation accuracy: {epoch_accuracy}%")
+            if val_x is not None and val_y is not None:
+                val_countdown += 1
+                if val_countdown == val_every:
+                    print(
+                        f"Epoch {epoch} validation accuracy: {self.score(val_x, val_y)}%"
+                    )
+                    val_countdown = 0
 
-    def score(self, test_data, test_label):
-        correct_predictions = sum((self.predict(test_data) == test_label).astype(int))
-        return round(correct_predictions / len(test_label) * 100, 2)
+    def score(self, test_x, test_y):
+        correct_predictions = sum((self.predict(test_x) == test_y).astype(int))
+        return round(correct_predictions / len(test_y) * 100, 2)
