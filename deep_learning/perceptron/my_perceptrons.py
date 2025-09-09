@@ -5,13 +5,15 @@ class Perceptrons:
     """
     My perceptrons with a single hidden layer of multiple perceptrons which feed
     into a single perceptron (that is the output peceptron).
-    Every single perceptron will have weights and a bias, the weighted sum will
-    be converted to either 1 or 0.
+    Every single perceptron have weights and a bias, their weighted sum will be
+    converted to either -1 or 1.
 
     Inputs    Hidden Perceptrons  Output perceptron
     -----------------------------------------------
     O       -> O                ->
+    O       -> O                ->
     O       -> O                -> O
+    O       -> O                ->
     O       -> O                ->
     -----------------------------------------------
     """
@@ -27,7 +29,7 @@ class Perceptrons:
         self.output_bias = np.random.randn()
 
     def forward(self, inputs):
-        # perceptron formula:
+        # perceptron activation formula:
         # if a * w < threshold (which is a * w + b < 0), then output is -1, else output is 1
         hidden_outputs = np.where(
             inputs @ self.hidden_weights + self.hidden_biases < 0, -1, 1
@@ -58,6 +60,13 @@ class Perceptrons:
                 if final_output == label:
                     continue
 
+                # update for the single output perceptron
+                output_error = label - final_output
+                delta_output_w = eta * output_error * hidden_outputs
+                delta_output_b = eta * output_error
+                self.output_weights += delta_output_w
+                self.output_bias += delta_output_b
+
                 # updates for all hidden perceptrons
                 for i in range(self.num_perceptrons):
                     # this if check is not technically necessary for the same reason as before
@@ -66,19 +75,11 @@ class Perceptrons:
 
                     # formula for delta_w is n * (y_expected - y_output) * x_input
                     # formula for delta_b is n * (y_expected - y_output)
-
                     hidden_error = label - hidden_outputs[i]
                     delta_hidden_w = eta * hidden_error * inputs
                     delta_hidden_bias = eta * hidden_error
                     self.hidden_weights[:, i] += delta_hidden_w
                     self.hidden_biases[i] += delta_hidden_bias
-
-                # update for the single output perceptron
-                output_error = label - final_output
-                delta_output_w = eta * output_error * hidden_outputs
-                delta_output_b = eta * output_error
-                self.output_weights += delta_output_w
-                self.output_bias += delta_output_b
 
             # print validation accuracy after training on current epoch
             if val_x is not None and val_y is not None:
