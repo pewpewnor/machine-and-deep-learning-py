@@ -21,7 +21,7 @@ test_loader = DataLoader(test_data, batch_size=10)
 
 from deep_learning.pytorch.cnn import CNN
 
-model = CNN().to(device)
+model = CNN(10).to(device)
 loss_fn = nn.CrossEntropyLoss()
 optimizer = torch.optim.AdamW(model.parameters())
 
@@ -73,7 +73,7 @@ def test():
             all_correct += correct
             all_total += len(pred)
 
-    print(f"Correct: {all_correct} / {all_total}")
+    print(f"Correct: {all_correct // all_total * 100}")
 
 
 train_one_epoch()

@@ -42,9 +42,11 @@ class NeuralNetwork:
         nabla_w = [np.zeros(w.shape) for w in self.weights]
         for image, label in mini_batch:
             delta_nabla_b, delta_nabla_w = self.backpropagation(image, label)
+            # apply each gradient updates to the running gradients for this mini batch
             nabla_b = [nb + dnb for nb, dnb in zip(nabla_b, delta_nabla_b)]
             nabla_w = [nw + dnw for nw, dnw in zip(nabla_w, delta_nabla_w)]
         scaled_eta = eta / len(mini_batch)
+        # apply the running gradients updates to the weights & biases in each layer
         self.biases = [b - scaled_eta * nb for b, nb in zip(self.biases, nabla_b)]
         self.weights = [w - scaled_eta * nw for w, nw in zip(self.weights, nabla_w)]
 
@@ -52,7 +54,7 @@ class NeuralNetwork:
         nabla_b = [np.zeros(b.shape) for b in self.biases]
         nabla_w = [np.zeros(w.shape) for w in self.weights]
 
-        # forward pass below
+        # forward pass below, but save the activations and weights sums for each layer
 
         a = image
         activations = [a]
